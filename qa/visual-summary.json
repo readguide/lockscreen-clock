@@ -1,0 +1,38 @@
+[
+  {
+    "run": "before-highfreq",
+    "transitions": 48,
+    "frames": 527,
+    "maxGlyphBoundDeltaCssPx": null,
+    "maxCaptureGapMs": null,
+    "errors": [],
+    "baselineReproduced": false
+  },
+  {
+    "run": "after-highfreq",
+    "transitions": 48,
+    "frames": 827,
+    "maxGlyphBoundDeltaCssPx": null,
+    "maxCaptureGapMs": null,
+    "errors": [],
+    "baselineReproduced": null
+  },
+  {
+    "run": "before-headed",
+    "transitions": 48,
+    "frames": 2914,
+    "maxGlyphBoundDeltaCssPx": 2,
+    "maxCaptureGapMs": 33.10799598693848,
+    "errors": [],
+    "baselineReproduced": false
+  },
+  {
+    "run": "after-headed",
+    "transitions": 48,
+    "frames": 2913,
+    "maxGlyphBoundDeltaCssPx": 2,
+    "maxCaptureGapMs": 48.49410057067871,
+    "errors": [],
+    "baselineReproduced": null
+  }
+]

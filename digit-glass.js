@@ -27,8 +27,8 @@ export function createDigitGlass(canvas, clock, cells) {
     // scene: white transmission remains legible, no invented wallpaper or dispersion.
     const materials={
       glass:{uFinish:0,uBevel:7,uHeight:4,uTintAmount:.58,uSpecular:.72,uSpecPower:29.5,uFresnel:.65,uHighlightWidth:.72,uHighlightSharpness:1,uBlurPlateau:0,uDispersion:0,uEdgeLine:.24,uEdgeWidth:.6},
-      frost:{uFinish:1,uBevel:5,uHeight:2,uTintAmount:.82,uSpecular:.16,uSpecPower:29.5,uFresnel:.65,uHighlightWidth:.8,uHighlightSharpness:1,uBlurPlateau:12,uDispersion:0,uEdgeLine:.10,uEdgeWidth:.6},
-      prism:{uFinish:2,uBevel:4,uHeight:3,uTintAmount:.64,uSpecular:.85,uSpecPower:29.5,uFresnel:.65,uHighlightWidth:.6,uHighlightSharpness:1.15,uBlurPlateau:0,uDispersion:0,uEdgeLine:.42,uEdgeWidth:.5}
+      frost:{uFinish:1,uBevel:16,uHeight:7,uTintAmount:.62,uSpecular:.62,uSpecPower:14,uFresnel:.85,uHighlightWidth:1,uHighlightSharpness:.75,uBlurPlateau:3,uDispersion:0,uEdgeLine:.12,uEdgeWidth:.7},
+      prism:{uFinish:2,uBevel:12,uHeight:9,uTintAmount:.52,uSpecular:.94,uSpecPower:24,uFresnel:1,uHighlightWidth:.85,uHighlightSharpness:1,uBlurPlateau:0,uDispersion:0,uEdgeLine:.24,uEdgeWidth:.65}
     };
     gl.useProgram(p);for(const [n,v] of Object.entries(materials[mode]||materials.glass))f(n,v);gl.uniform3f(loc('uTintColor'),1,1,1);
     const start=performance.now();

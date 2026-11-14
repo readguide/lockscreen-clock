@@ -718,10 +718,26 @@ void main() {
   float adaptiveAmount = uTintAmount * mix(1.10, 0.92, useDarkMaterial);
   float whiteBody = adaptiveAmount;
   if (uFinish < .5) whiteBody *= mix(.48, 1.0, smoothstep(0.0, 1.0, t));
-  // All finishes remain achromatic; the fine-edge mode uses the same restrained body.
-  if (uFinish > 1.5) whiteBody *= mix(.65, 1.0, smoothstep(0.0, 1.0, t));
+  // Finishes 3/4 use the SAME SDF, Snell displacement and circular meniscus.
+  // A constant, near-opaque tint used to erase their optical depth. Keep the
+  // white transmitted body, but let it thin smoothly through the rounded rim.
+  // Finish 1 (the second UI button) is deliberately unchanged.
+  if (uFinish > .5 && uFinish < 1.5)
+    whiteBody *= mix(.38, 1.0, h);
+  if (uFinish > 1.5)
+    whiteBody *= mix(.24, 1.0, h);
   col = mix(col, resolvedTint, clamp(whiteBody, 0.0, 1.0));
-  if (uFinish > .5 && uFinish < 1.5) col += (hash12(px)-.5)*.012;
+  if (uFinish > .5) {
+    // Retain reflection ABOVE the body tint instead of burying it under milk.
+    // The existing two normal-driven lobes + Schlick Fresnel make a rounded,
+    // directional glass edge, not a uniform outline. No coloured dispersion.
+    float softFinish = 1.0 - step(1.5, uFinish);
+    float reflected = uSpecular * (s1 + s2) * specBand * sourceStrength;
+    float grazing = fres * uFresnel * (0.25 + 0.75 * lit);
+    col += vec3(reflected * mix(.64, .42, softFinish)
+                + grazing * mix(.24, .12, softFinish));
+    if (uFinish < 1.5) col += (hash12(px)-.5)*.003;
+  }
   col += uBright;
 
   // ---- soft contact shadow ----------------------------------------------
