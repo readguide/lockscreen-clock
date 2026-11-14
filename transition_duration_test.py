@@ -1,4 +1,4 @@
-"""Real Chrome/WebGL regression for 160ms out, 130ms delay, 220ms in."""
+"""Real Chrome/WebGL regression for 160ms out, 110ms delay (50ms overlap), 220ms in."""
 import asyncio
 import json
 import os
@@ -35,7 +35,7 @@ async def main():
           flush();if(!glassQA.transition)throw Error('Expected animated transition');
           const builds=glassQA.sdfBuilds, uploads=glassQA.textureUploads, start=now;
           let overlap;
-          for(const elapsed of [80,130,145,160,240,349,350]){
+          for(const elapsed of [80,110,145,160,240,329,330]){
             now=start+elapsed;passes=[];flush();
             samples.push({elapsed,active:!!glassQA.transition,passes});
             if(elapsed===145)overlap=pixels();
@@ -62,7 +62,7 @@ async def main():
             outgoing, incoming = sample['passes']
             digit = 7 if seconds else 4
             assert abs(outgoing[digit] - (1-ease(t/160))) < 1e-6, sample
-            assert abs(incoming[digit] - ease((t-130)/220)) < 1e-6, sample
+            assert abs(incoming[digit] - ease((t-110)/220)) < 1e-6, sample
             assert all(v == 0 for j,v in enumerate(outgoing) if j != digit), sample
             assert all(v == 1 for j,v in enumerate(incoming) if j != digit), sample
         assert [s['active'] for s in results['samples']] == [True]*6+[False], results

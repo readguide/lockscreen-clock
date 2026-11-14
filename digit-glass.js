@@ -24,7 +24,7 @@ export function createDigitGlass(canvas, clock, cells) {
   const glyphCache=new Map();
   let key='', material='';window.glassQA={draws:0,sdfBuilds:0,textureUploads:0,programs:1,geometryUpdates:[],updates:[],glError:()=>gl.getError(),source:'Oliverrr2424/webgl-apple-liquid-glass V1 FS_GLASS, e8030bd'};
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  const FADE_OUT_MS=160, FADE_IN_MS=220, FADE_IN_DELAY_MS=130;
+  const FADE_OUT_MS=160, FADE_IN_MS=220, FADE_IN_DELAY_MS=110;
   let frame=0, transition=null, displayed='', layout='';
   const fades=new Float32Array(8).fill(1);
   function draw(){
