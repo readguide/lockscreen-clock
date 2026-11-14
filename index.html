@@ -43,22 +43,41 @@
     :focus-visible { outline: 2px solid #b6cfeb; outline-offset: 5px; }
     :fullscreen .styles, .is-fullscreen .styles { display: none; }
     @media (display-mode: standalone) { .styles { display: none; } }
-    main::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; }
-    [data-style="glass"] main::before { opacity: 1; background: radial-gradient(ellipse at 18% 30%, #718aa52b, transparent 47%), radial-gradient(ellipse at 83% 72%, #8b786024, transparent 45%); }
-    [data-style="glass"] .glyph {
-      color: transparent; -webkit-text-fill-color: transparent;
-      background: linear-gradient(145deg, #ffffffdb 0%, #dceaf956 19%, #627b9038 37%, #ffffffb0 49%, #a2bddf29 53%, #384b6224 72%, #e7f1ffbd 100%);
-      background-clip: text; -webkit-background-clip: text;
-      -webkit-text-stroke: 1px #e5f0ff7a;
-      filter: drop-shadow(0 1px 0 #ffffff70) drop-shadow(0 6px 12px #0009);
-      text-shadow: 1px 0 1px #cde5ff24, -1px -1px 0 #ffffff28;
-    }
-    [data-style="glass"] .colon::before, [data-style="glass"] .colon::after { background: linear-gradient(145deg, #ffffffc9, #a3c6e43b 40%, #667d9230 62%, #eff6ffbd); border: 1px solid #e5f0ff7a; box-shadow: inset 1px 1px 2px #ffffff70, inset -1px -2px 3px #0008, 0 4px 8px #0006; }
+    #glass-scene { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; display: none; }
+    [data-style="glass"] #glass-scene { display: block; }
+    [data-style="glass"] time { color: transparent; }
+    [data-style="glass"] .glyph { color: transparent; }
+    [data-style="glass"] .colon::before, [data-style="glass"] .colon::after { background: transparent; }
     @media (prefers-reduced-motion: reduce) { .glyph { animation: none !important; } }
   </style>
 </head>
 <body>
-  <main><time id="clock" tabindex="0" title="Toggle fullscreen" aria-label="Current local time"></time></main>
+  <main>
+    <!-- Both outside and inside the digits use this SAME scene. The masked copy
+         is displaced, not a text gradient. No backdrop-filter dependency. -->
+    <svg id="glass-scene" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <radialGradient id="ambient"><stop stop-color="#64645f" stop-opacity=".32"/><stop offset="1" stop-color="#08090b" stop-opacity="0"/></radialGradient>
+        <linearGradient id="ribbon" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#c8c8bf" stop-opacity="0"/><stop offset=".48" stop-color="#c8c8bf" stop-opacity=".08"/><stop offset=".52" stop-color="#c8c8bf" stop-opacity=".19"/><stop offset="1" stop-color="#c8c8bf" stop-opacity="0"/></linearGradient>
+        <linearGradient id="rim" x1="0" y1="0" x2=".6" y2="1"><stop stop-color="#fff" stop-opacity=".85"/><stop offset=".25" stop-color="#fff" stop-opacity=".20"/><stop offset=".52" stop-color="#fff" stop-opacity=".10"/><stop offset=".8" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity=".8"/></linearGradient>
+        <filter id="soft-environment" x="-50%" y="-100%" width="200%" height="300%"><feGaussianBlur stdDeviation=".025"/></filter>
+        <g id="environment">
+          <ellipse cx=".3" cy=".43" rx=".7" ry=".52" fill="url(#ambient)"/>
+          <ellipse cx=".85" cy=".73" rx=".6" ry=".6" fill="url(#ambient)" opacity=".45"/>
+          <path d="M-.2 .7 Q.3 .1 1.2 .48 L1.2 .59 Q.3 .24 -.2 .85Z" fill="url(#ribbon)" opacity=".45" filter="url(#soft-environment)"/>
+        </g>
+        <filter id="refraction" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency=".006 .012" numOctaves="1" seed="8" result="normal"/>
+          <feDisplacementMap in="SourceGraphic" in2="normal" scale="32" xChannelSelector="R" yChannelSelector="G"/>
+          <feComponentTransfer><feFuncR type="linear" slope="1.08" intercept="0"/><feFuncG type="linear" slope="1.08" intercept="0"/><feFuncB type="linear" slope="1.08" intercept="0"/></feComponentTransfer>
+        </filter>
+        <mask id="digit-mask" maskUnits="userSpaceOnUse"><g id="mask-glyphs" fill="white"/></mask>
+      </defs>
+      <g id="environment-base"><use href="#environment"/></g>
+      <g mask="url(#digit-mask)"><g filter="url(#refraction)"><g id="environment-lens"><use href="#environment"/></g></g></g>
+      <g id="glass-rims" fill="none" stroke="url(#rim)" stroke-width=".85"/>
+    </svg>
+    <time id="clock" tabindex="0" title="Toggle fullscreen" aria-label="Current local time"></time></main>
   <nav class="styles" aria-label="Clock appearance">
     <button type="button" data-mode="classic" aria-pressed="true">经典</button>
     <button type="button" data-mode="glass" aria-pressed="false">液态玻璃</button>
@@ -85,6 +104,43 @@
         clock.append(cell);
         return cell;
       });
+      const scene = document.getElementById('glass-scene');
+      const maskGlyphs = document.getElementById('mask-glyphs');
+      const rims = document.getElementById('glass-rims');
+      let glassFrame;
+      function drawGlass() {
+        cancelAnimationFrame(glassFrame);
+        if (document.documentElement.dataset.style !== 'glass') return;
+        const style = getComputedStyle(clock), size = parseFloat(style.fontSize);
+        context.font = `${style.fontWeight} ${size}px ${style.fontFamily}`;
+        const metrics = context.measureText('88:88');
+        const baseline = (size - metrics.fontBoundingBoxAscent - metrics.fontBoundingBoxDescent) / 2 + metrics.fontBoundingBoxAscent;
+        const fragment = document.createDocumentFragment();
+        for (const cell of cells) {
+          const box = cell.getBoundingClientRect();
+          if (cell.classList.contains('colon')) {
+            for (const y of [.32, .68]) {
+              const dot = document.createElementNS(scene.namespaceURI, 'circle');
+              dot.setAttribute('cx', box.x + box.width / 2); dot.setAttribute('cy', box.y + box.height * y); dot.setAttribute('r', size * .0525); fragment.append(dot);
+            }
+          } else for (const glyph of cell.children) {
+            const box = glyph.getBoundingClientRect();
+            const text = document.createElementNS(scene.namespaceURI, 'text');
+            text.setAttribute('x', box.x); text.setAttribute('y', box.y + baseline);
+            text.style.fontFamily = style.fontFamily; text.style.fontSize = style.fontSize; text.style.fontWeight = style.fontWeight;
+            text.style.fontVariantNumeric = 'tabular-nums'; text.setAttribute('opacity', getComputedStyle(glyph).opacity);
+            text.textContent = glyph.textContent; fragment.append(text);
+          }
+        }
+        maskGlyphs.replaceChildren(fragment);
+        rims.replaceChildren(...Array.from(maskGlyphs.children, node => node.cloneNode(true)));
+        const transform = `scale(${innerWidth} ${innerHeight})`;
+        document.getElementById('environment-base').setAttribute('transform', transform);
+        document.getElementById('environment-lens').setAttribute('transform', transform);
+        if (clock.getAnimations({subtree: true}).length) glassFrame = requestAnimationFrame(drawGlass);
+      }
+      new MutationObserver(drawGlass).observe(clock, {childList: true, subtree: true, attributes: true});
+      new MutationObserver(drawGlass).observe(document.documentElement, {attributes: true, attributeFilter: ['data-style']});
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
       let timer, previous = '', lastUpdate = 0;
@@ -105,6 +161,7 @@
         clock.style.setProperty('--ink-height', `${(ascent + descent) * scale}px`);
         clock.style.setProperty('--glyph-top', `${top}px`);
         cells.forEach((cell, index) => cell.style.width = `${(index === 2 ? colonWidth : digitWidth) * scale}px`);
+        drawGlass();
       }
       function render(text, animate) {
         cells.forEach((cell, index) => {
