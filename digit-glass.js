@@ -24,7 +24,7 @@ export function createDigitGlass(canvas, clock, cells) {
   const glyphCache=new Map();
   let key='', material='';window.glassQA={draws:0,sdfBuilds:0,textureUploads:0,programs:1,geometryUpdates:[],updates:[],glError:()=>gl.getError(),source:'Oliverrr2424/webgl-apple-liquid-glass V1 FS_GLASS, e8030bd'};
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  const FADE_MS=220;
+  const FADE_OUT_MS=110, FADE_IN_MS=220;
   let frame=0, transition=null, displayed='', layout='';
   const fades=new Float32Array([1,1,1,1,1]);
   function draw(){
@@ -40,14 +40,14 @@ export function createDigitGlass(canvas, clock, cells) {
     const t=transition;
     if(document.hidden||reduced.matches){settle();update(true);return;}
     let elapsed=now-t.start;
-    if(!t.swapped && elapsed>=FADE_MS){
-      t.swapped=true;update(true);t.start=performance.now()-FADE_MS;elapsed=FADE_MS;
+    if(!t.swapped && elapsed>=FADE_OUT_MS){
+      t.swapped=true;update(true);t.start=performance.now()-FADE_OUT_MS;elapsed=FADE_OUT_MS;
     }
-    const progress=Math.min(1,elapsed<FADE_MS?elapsed/FADE_MS:(elapsed-FADE_MS)/FADE_MS);
+    const progress=Math.min(1,elapsed<FADE_OUT_MS?elapsed/FADE_OUT_MS:(elapsed-FADE_OUT_MS)/FADE_IN_MS);
     const eased=progress*progress*(3-2*progress);
     t.changed.forEach((changed,j)=>fades[j]=changed?(t.swapped?eased:1-eased):1);
     draw();
-    if(elapsed>=FADE_MS*2){settle();window.glassQA.transition=null;return;}
+    if(elapsed>=FADE_OUT_MS+FADE_IN_MS){settle();window.glassQA.transition=null;return;}
     frame=requestAnimationFrame(tick);
   }
   reduced.addEventListener('change',()=>{settle();update(true);});
