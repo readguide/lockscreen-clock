@@ -299,7 +299,7 @@ uniform float uHighlightBase;
 uniform float uFresnel;
 uniform float uSat;
 uniform float uBright;
-uniform float uFinish; // 0 clear white, 1 frosted, 2 cool/warm refractive
+uniform float uFinish; // 0 clear white, 1 frosted, 2 fine white edge
 uniform float uTintAmount;
 uniform vec3  uTintColor;
 uniform float uTintAdapt;    // content-aware light/dark material polarity
@@ -718,11 +718,8 @@ void main() {
   float adaptiveAmount = uTintAmount * mix(1.10, 0.92, useDarkMaterial);
   float whiteBody = adaptiveAmount;
   if (uFinish < .5) whiteBody *= mix(.48, 1.0, smoothstep(0.0, 1.0, t));
-  if (uFinish > 1.5) {
-    whiteBody *= mix(.48, 1.0, smoothstep(0.0, 1.0, t));
-    vec3 rimHue = mix(vec3(.64,.84,1.0),vec3(1.0,.79,.62),clamp(.5+.5*g.x,0.0,1.0));
-    resolvedTint = mix(rimHue, resolvedTint, smoothstep(.05,.9,t));
-  }
+  // All finishes remain achromatic; the fine-edge mode uses the same restrained body.
+  if (uFinish > 1.5) whiteBody *= mix(.65, 1.0, smoothstep(0.0, 1.0, t));
   col = mix(col, resolvedTint, clamp(whiteBody, 0.0, 1.0));
   if (uFinish > .5 && uFinish < 1.5) col += (hash12(px)-.5)*.012;
   col += uBright;

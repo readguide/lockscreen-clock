@@ -1,14 +1,15 @@
-# Verification
+# Pure-black release verification
 
-Executed using installed Google Chrome through `/tmp/clock-qa-venv/bin/python`, no dependencies installed.
+Executed `verify.py` and `verify-extra.py` using installed Google Chrome (Playwright, headless), not a simulated renderer. All 16 viewport/material combinations passed: 1440×900, 1920×1080, 390×844, 844×390; classic / glass / frost / prism (UI label now 细亮边).
 
-- 1440×900, 1920×1080, 390×844, 844×390: all four styles rendered, clock box centered to <1 CSS px, no clipping.
-- Every style: 1.2 second idle observation yielded zero additional WebGL draws; minute-change QA kept identical bounds and used in-place transition.
-- Every viewport: style persistence after reload; real Fullscreen API entered; controls hidden inside and restored after exit; no console/page errors; gl.getError() == 0.
-- Timer-driven midnight rollover tested with browser clock: 23:59 → 00:00.
-- Forced WebGL2 unavailable: readable CSS glass verified as rgb(237,244,247), screenshot saved.
-- Screenshots: `qa/{desktop,wide,mobile,landscape}-{classic,glass,frost,prism}.png`; fallback `qa/css-fallback.png`.
-- Visual self-review: all four desktop variants viewed; final clear/prism and mobile frost re-viewed after strengthening optical differences. White bodies are legible, no dark-outline-only digits; restrained teal/slate/amber environment has fine curves, no broad white diagonal stripe.
-- Design audit: 0/10 applicable slop tells. Centered large numeric monitor is the actual product, not a marketing hero or decorative statistic; optical glass is requested functional content, not an unearned panel treatment.
+- Background: seven remote sample points per screenshot are exactly RGB(0,0,0). Additionally every pixel outside clock/control bounds +4px is asserted black. Every pixel in all 16 screenshots is achromatic R=G=B. No ambient pools, curves, light blobs or RGB trails.
+- Layout: fixed maximum clock box <=92% viewport width, centered with <1 CSS px DOM error. Ink-measured group center horizontal error 0px, vertical raster threshold error 0–2px (largest at 1920px, shader antialiasing/font metric difference). No overflow. Actual visible ink is centered independently of font sidebearings.
+- Spacing: same .045em gap between each digit and colon; colon dot diameter .105em, dots at 32% / 68% ink height. Cells crop to measured glyph ink rather than font advances; maximum group box stays fixed. 10:38 measured gaps across four finishes: desktop 22–24px, wide 30–32px, mobile 5–7px, landscape 13–14px. Full data in measurements.json. Font sizes: 517.686 / 690.248 / 140.207 / 303.422px respectively.
+- Material: upstream Oliver Nemo MIT Snell/refraction, Schlick Fresnel, specular/edge lighting retained. Neutral white body; dispersion=0 for all presets. Clear bevel/height 5/3px, frost 5/2px, fine edge 4/3px. No invented outward rays or stretched geometry. Pure black has no detail to refract; visible finish differences come from white body, edge/light and frost, not fake scene content.
+- Runtime: no page/console errors; GL error=0 each style. Each 1.2s idle observation: zero additional draws. Style survives reload. Actual Fullscreen API entered, controls hide and return on exit. 10:38→10:39 preserves outer clock bounds and uses opacity/blur in-place crossfade, no translation animation. Midnight timer verified 23:59→00:00. Forced unavailable WebGL produces readable neutral CSS fallback.
+- Visual self-review: inspected desktop + mobile screenshots for all four styles in review-contact-sheet.png. White-readable, balanced gaps, black surroundings, no visible rays/spikes/color smears. On pure black the three glass presets are deliberately close, particularly on mobile; do not claim dramatic physical refraction or native Apple equivalence.
+- Design audit: no decorative gradients, cards or unrelated ornament; centered numeric Monitor is intentional, not a marketing hero.
 
-Limitations: Chrome headless is the real installed Chrome binary, not physical iOS hardware. Standalone media emulation did not activate in this environment, so installed-PWA standalone was not runtime verified (CSS rule and existing manifest retained). Fullscreen was runtime verified. Device GPU/font differences may affect appearance. Optical differences are intentionally subtle on small screens to retain white readability. Continuous long-duration battery profiling was not performed; idle draw counter was measured. Pages resource byte verification is performed separately after deployment.
+Screenshots: `{desktop,wide,mobile,landscape}-{classic,glass,frost,prism}.png`; contact sheet `review-contact-sheet.png`. Full automated results `verification.json`, `measurements.json`, `extra.json`.
+
+Limits: this is real desktop Chrome at mobile viewport sizes, not physical iPhone hardware. Safari/iPhone and installed PWA standalone remain unverified; standalone CSS + manifest retained (CDP display-mode emulation did not activate). Font/GPU differences can change raster appearance. The fixed outer box is stable; ink-fitted inner cells can re-center by small amounts when different glyph widths appear, without a sliding animation. No long-duration battery profiling. Context loss falls back to CSS, not automatic WebGL restoration.

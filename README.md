@@ -3,10 +3,12 @@
 Live: https://readguide.github.io/lockscreen-clock/
 
 A centered 24-hour local HH:mm clock, with four remembered appearances:
-- Classic white: clean opaque white on charcoal.
-- Clear white: white-bodied glass, narrow refracting bevel and crisp highlights.
-- Soft frost: brighter milky body, scattered transmission and subtle grain.
-- Cool/warm refraction: deeper optical bevel, dispersion and restrained cool/warm edge reflections.
+- Classic white: clean opaque white on pure black (#000).
+- Clear white: neutral white-bodied glass with restrained optical bevel.
+- Soft frost: brighter milky white body and subtle achromatic grain.
+- Fine white edge (stored key `prism` retained for preference compatibility): narrow neutral edge lighting, zero RGB dispersion.
+
+All four backgrounds are exactly #000. A uniform black field contains no detail to visibly refract: these finishes honestly emphasize white readability, upstream Fresnel/specular edges and soft frost instead of fabricating a colored environment.
 
 Click the time or press F for real browser fullscreen; the appearance controls return on exit. Changed digits crossfade in place, never slide or change the clock bounds. Reduced motion updates immediately. Rendering is event-driven: minute changes, size/font changes and appearance changes; no continuous animation loop. WebGL2 failure or context loss retains readable CSS white glass.
 
