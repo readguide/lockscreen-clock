@@ -54,7 +54,7 @@
   {
     "baseline": false,
     "mode": "classic",
-    "sha256": "53a62fb456e958504f2f41189591882963d1dc9ba667d181585a0591c7ed94b8",
+    "sha256": "69bf0264fe4fd77d533ab705c20607a936f685c2ea8abbe96bb276399f5c9d4e",
     "state": {
       "font": "",
       "computed": "600 303.422px / 303.422px ui-rounded, \"SF Pro Rounded\", -apple-system, \"system-ui\", \"Helvetica Neue\", Arial, sans-serif",
@@ -63,7 +63,7 @@
         "Clock Condensed"
       ]
     },
-    "changedPixels": 1
+    "changedPixels": 0
   },
   {
     "baseline": false,

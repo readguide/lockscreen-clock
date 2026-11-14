@@ -69,10 +69,15 @@
   </nav>
   <script type="module">
     import {createDigitGlass} from "./digit-glass.js";
-    import {chromeRoundedFallback} from "./chrome-rounded.js";
     (async () => {
       const clock = document.getElementById('clock');
-      await chromeRoundedFallback(clock);
+      // Safari must never depend on a Chrome-only module or font request.
+      if (/Chrome\//.test(navigator.userAgent) && !/Edg\//.test(navigator.userAgent)) {
+        try {
+          const {chromeRoundedFallback} = await import('./chrome-rounded.js');
+          await chromeRoundedFallback(clock);
+        } catch (_) { /* An unavailable optional font module must not hide the clock. */ }
+      }
       const styleButtons = document.querySelectorAll('[data-mode]');
       function setStyle(mode) {
         const selected = ['classic','glass','frost','prism'].includes(mode) ? mode : 'classic';
