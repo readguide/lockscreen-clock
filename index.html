@@ -37,7 +37,7 @@
     }
     .colon::before { top: 32%; }
     .colon::after { top: 68%; }
-    .styles { position: fixed; bottom: max(24px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); display: flex; gap: 4px; padding: 4px; border: 1px solid #ffffff20; border-radius: 24px; background: #ffffff08; }
+    .styles { position: fixed; bottom: max(24px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); display: flex; flex-wrap: wrap; justify-content: center; width: max-content; max-width: calc(100% - 16px); gap: 4px; padding: 4px; border: 1px solid #ffffff20; border-radius: 24px; background: #ffffff08; }
     .styles button { appearance: none; border: 0; border-radius: 20px; background: transparent; color: #c7c7c7; font: 13px -apple-system, sans-serif; min-height: 44px; padding: 0 12px; cursor: pointer; white-space: nowrap; }
     .styles button[aria-pressed="true"] { background: #ffffff16; color: #eee; }
     :focus-visible { outline: 2px solid #fff; outline-offset: 5px; }
@@ -64,6 +64,8 @@
     <button type="button" data-mode="glass" aria-pressed="false">通透白</button>
     <button type="button" data-mode="frost" aria-pressed="false">柔雾白</button>
     <button type="button" data-mode="prism" aria-pressed="false">细亮边</button>
+    <button type="button" data-format="hm" aria-pressed="true">时分</button>
+    <button type="button" data-format="hms" aria-pressed="false">时分秒</button>
   </nav>
   <script type="module">
     import {createDigitGlass} from "./digit-glass.js";
@@ -81,13 +83,24 @@
       setStyle(savedStyle);
       styleButtons.forEach(button => button.addEventListener('click', event => { event.stopPropagation(); setStyle(button.dataset.mode); }));
       const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-      const cells = Array.from('00:00', (char, index) => {
-        const cell = document.createElement('span');
-        cell.className = index === 2 ? 'colon' : 'digit';
-        cell.setAttribute('aria-hidden', 'true');
-        clock.append(cell);
-        return cell;
-      });
+      let timeFormat;
+      try { timeFormat = localStorage.getItem('clock-format'); } catch (_) {}
+      timeFormat = timeFormat === 'hms' ? 'hms' : 'hm';
+      const cells = [];
+      function buildCells() {
+        // Mutate the shared array so the renderer sees the new layout without
+        // compiling another program or retaining detached cells.
+        cells.length = 0;
+        clock.replaceChildren();
+        for (const char of timeFormat === 'hms' ? '00:00:00' : '00:00') {
+          const cell = document.createElement('span');
+          cell.className = char === ':' ? 'colon' : 'digit';
+          cell.setAttribute('aria-hidden', 'true');
+          clock.append(cell);
+          cells.push(cell);
+        }
+      }
+      buildCells();
       const scene = document.getElementById('glass-scene');
       let renderer;
       try { renderer = createDigitGlass(scene, clock, cells); }
@@ -115,17 +128,19 @@
         const gap = 4.5; // Same .045em air between every ink-centered cell.
         const ascent = metrics.actualBoundingBoxAscent;
         const descent = metrics.actualBoundingBoxDescent;
-        const size = Math.min(innerWidth * .92 / (digitWidth * 4 + colonWidth + gap * 4), (innerHeight < 430 ? innerHeight - 140 : innerHeight * .8) / (ascent + descent)) * 100;
+        const digits = timeFormat === 'hms' ? 6 : 4, colons = timeFormat === 'hms' ? 2 : 1;
+        const totalWidth = digitWidth * digits + colonWidth * colons + gap * (cells.length - 1);
+        const size = Math.min(innerWidth * .92 / totalWidth, (innerHeight < 430 ? innerHeight - 140 : innerHeight * .8) / (ascent + descent)) * 100;
         const scale = size / 100;
         clock.style.fontSize = `${size}px`;
-        clock.style.width = `${(digitWidth * 4 + colonWidth + gap * 4) * scale}px`;
+        clock.style.width = `${totalWidth * scale}px`;
         clock.style.justifyContent = 'center';
         // Crop the line box to actual ink, so the visible numbers are centered too.
         const top = ((metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent - 100) / 2 - metrics.fontBoundingBoxAscent + ascent) * scale;
         clock.style.setProperty('--ink-height', `${(ascent + descent) * scale}px`);
         clock.style.setProperty('--glyph-top', `${top}px`);
         cells.forEach((cell, index) => {
-          cell.style.width = `${(index === 2 ? colonWidth : digitWidth) * scale}px`;
+          cell.style.width = `${(cell.classList.contains('colon') ? colonWidth : digitWidth) * scale}px`;
         });
         alignGlyphs();
         drawGlass();
@@ -134,7 +149,7 @@
         const style=getComputedStyle(clock);
         context.font=`${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
         cells.forEach((cell,index)=>{
-          if(index===2)return;
+          if(cell.classList.contains('colon'))return;
           for(const glyph of cell.children){const m=context.measureText(glyph.textContent);
             // Fixed tabular cells; center ink without ever moving a cell or its neighbours.
             glyph.style.left=`${(parseFloat(cell.style.width)-m.actualBoundingBoxLeft-m.actualBoundingBoxRight)/2+m.actualBoundingBoxLeft}px`;
@@ -154,11 +169,11 @@
           const next = document.createElement('span');
           next.className = 'glyph'; next.textContent = text[index];
           cell.replaceChildren(...(domAnimate && old ? [old, next] : [next]));
-          if (domAnimate && old && index !== 2) {
-            const options = { duration: 680, easing: 'cubic-bezier(.22, .75, .18, 1)', fill: 'forwards' };
+          if (domAnimate && old && !cell.classList.contains('colon')) {
+            const options = { duration: 160, easing: 'cubic-bezier(.333, 0, .667, 1)', fill: 'both' };
             // Browser-rendered, in-place transition; not a replica of Apple's native animation.
             const outgoing = old.animate([{ opacity: 1, filter: 'blur(0)' }, { opacity: 0, filter: 'blur(2px)' }], options);
-            const incoming = next.animate([{ opacity: 0, filter: 'blur(2px)' }, { opacity: 1, filter: 'blur(0)' }], options);
+            const incoming = next.animate([{ opacity: 0, filter: 'blur(2px)' }, { opacity: 1, filter: 'blur(0)' }], {...options, duration: 220, delay: 130});
             incoming.onfinish = () => { old.remove(); outgoing.cancel(); incoming.cancel(); };
           }
         });
@@ -170,11 +185,12 @@
       function sync(allowMotion = false) {
         clearTimeout(timer);
         const now = new Date();
-        const text = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        const text = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}` + (timeFormat === 'hms' ? `:${String(now.getSeconds()).padStart(2, '0')}` : '');
         const animate = allowMotion && previous !== '' && !document.hidden && !reduced.matches && Date.now() - lastUpdate < 65000;
         render(text, animate);
         lastUpdate = Date.now();
-        timer = setTimeout(() => sync(true), 60000 - (Date.now() % 60000));
+        const interval = timeFormat === 'hms' ? 1000 : 60000;
+        if (!document.hidden) timer = setTimeout(() => sync(true), interval - (Date.now() % interval));
       }
       async function fullscreen() {
         try {
@@ -189,7 +205,7 @@
         if (event.key.toLowerCase() === 'f' && !event.repeat && !event.metaKey && !event.ctrlKey && !event.altKey) { event.preventDefault(); fullscreen(); }
       });
       document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') { sync(); fit(); }
+        if (!document.hidden) { sync(); fit(); } else { clearTimeout(timer); cells.forEach(c => c.getAnimations({subtree:true}).forEach(a=>a.finish())); }
       });
       window.addEventListener('pageshow', () => { sync(); fit(); });
       window.addEventListener('focus', () => sync());
@@ -201,6 +217,16 @@
         if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); fullscreen(); }
       });
       document.fonts.ready.then(fit);
+      const formatButtons = document.querySelectorAll('[data-format]');
+      function markFormat() { formatButtons.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.format===timeFormat))); }
+      markFormat();
+      formatButtons.forEach(b=>b.addEventListener('click',()=>{
+        if (timeFormat===b.dataset.format) return;
+        cells.forEach(c=>c.getAnimations({subtree:true}).forEach(a=>a.cancel()));
+        timeFormat=b.dataset.format;
+        try { localStorage.setItem('clock-format',timeFormat); } catch (_) {}
+        previous=''; buildCells(); markFormat(); sync(); fit();
+      }));
       window.clockQA = {render: text => render(text, true), fit};
       sync();
       fit();

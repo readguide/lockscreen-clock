@@ -10,8 +10,8 @@ export function createDigitGlass(canvas, clock, cells) {
   const floatLinear=gl.getExtension('OES_texture_float_linear');
   // Opacity is applied after the unchanged optical material, in screen space.
   if(!FS_GLASS.includes('uniform sampler2D uDigitSDF;') || !FS_GLASS.includes('outColor = vec4(col * aa, a);'))throw Error('Glass fade shader anchors changed');
-  const fs=FS_GLASS.replace('uniform sampler2D uDigitSDF;', 'uniform sampler2D uDigitSDF;\nuniform float uCellFade[5];\nuniform float uCellRight[5];').replace('outColor = vec4(col * aa, a);', `float fade = uCellFade[4];
-  for (int j=0;j<5;j++) { if (vUV.x < uCellRight[j]) { fade=uCellFade[j]; break; } }
+  const fs=FS_GLASS.replace('uniform sampler2D uDigitSDF;', 'uniform sampler2D uDigitSDF;\nuniform float uCellFade[8];\nuniform float uCellRight[8];').replace('outColor = vec4(col * aa, a);', `float fade = uCellFade[7];
+  for (int j=0;j<8;j++) { if (vUV.x < uCellRight[j]) { fade=uCellFade[j]; break; } }
   outColor = vec4(col * aa * fade, a * fade);`);
   const p=gl.createProgram();gl.attachShader(p,compile(gl.VERTEX_SHADER,VS_FULLSCREEN));gl.attachShader(p,compile(gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));
   gl.useProgram(p);const loc=n=>gl.getUniformLocation(p,n), f=(n,v)=>gl.uniform1f(loc(n),v),i=(n,v)=>gl.uniform1i(loc(n),v),v2=(n,a,b)=>gl.uniform2f(loc(n),a,b);
@@ -24,9 +24,9 @@ export function createDigitGlass(canvas, clock, cells) {
   const glyphCache=new Map();
   let key='', material='';window.glassQA={draws:0,sdfBuilds:0,textureUploads:0,programs:1,geometryUpdates:[],updates:[],glError:()=>gl.getError(),source:'Oliverrr2424/webgl-apple-liquid-glass V1 FS_GLASS, e8030bd'};
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  const FADE_OUT_MS=110, FADE_IN_MS=220, FADE_IN_DELAY_MS=80;
+  const FADE_OUT_MS=160, FADE_IN_MS=220, FADE_IN_DELAY_MS=130;
   let frame=0, transition=null, displayed='', layout='';
-  const fades=new Float32Array([1,1,1,1,1]);
+  const fades=new Float32Array(8).fill(1);
   function draw(){
     if(material==='classic')return;
     gl.useProgram(p);
@@ -67,14 +67,14 @@ export function createDigitGlass(canvas, clock, cells) {
     if(document.hidden){settle();window.glassQA.lastDrawKey=null;return;}
     const chars=cells.map(c=>c.lastElementChild?.textContent||'').join('');const nextKey=[innerWidth,innerHeight,devicePixelRatio,getComputedStyle(clock).font,chars].join('|');
     const mode=document.documentElement.dataset.style;
-    const nextLayout=[innerWidth,innerHeight,devicePixelRatio,getComputedStyle(clock).font].join('|');
+    const nextLayout=[innerWidth,innerHeight,devicePixelRatio,getComputedStyle(clock).font,cells.length].join('|');
     if(!internal){
       if(transition && transition.target===chars && layout===nextLayout && material===mode && clock.dataset.motion==='true')return;
       const canAnimate=!transition && displayed && displayed!==chars && layout===nextLayout && material===mode && mode!=='classic' && clock.dataset.motion==='true' && !document.hidden && !reduced.matches;
       settle();
       if(canAnimate){
         const from=displayed, changed=[...chars].map((c,j)=>c!==displayed[j]);
-        transition={target:chars,start:0,changed,oldFades:new Float32Array(changed.map(c=>c?1:0))};
+        transition={target:chars,start:0,changed,oldFades:new Float32Array(8).map((_,j)=>changed[j]?1:0)};
         changed.forEach((c,j)=>fades[j]=c?0:1);
         // Build/upload the target once before the animation clock starts, while
         // retaining the outgoing field in the second reusable texture.
@@ -84,7 +84,7 @@ export function createDigitGlass(canvas, clock, cells) {
       }
     }
     layout=nextLayout;
-    gl.uniform1fv(loc('uCellRight[0]'),new Float32Array(cells.map((cell,j)=>j===4?1:(cell.getBoundingClientRect().right+cells[j+1].getBoundingClientRect().left)/2/innerWidth)));
+    gl.uniform1fv(loc('uCellRight[0]'),Float32Array.from({length:8},(_,j)=>j>=cells.length-1?1:(cells[j].getBoundingClientRect().right+cells[j+1].getBoundingClientRect().left)/2/innerWidth));
     // Neutral white finishes: retain upstream optics; no dispersion or stretched rims.
     // Upstream Schlick Fresnel + directional specular/inner line, tuned for a black
     // scene: white transmission remains legible, no invented wallpaper or dispersion.
