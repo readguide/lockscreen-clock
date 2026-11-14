@@ -97,7 +97,7 @@
       function drawGlass() {
         cancelAnimationFrame(glassFrame);
         document.documentElement.dataset.renderer = renderer && document.documentElement.dataset.style !== 'classic' ? 'webgl' : 'css';
-        if (!renderer || document.documentElement.dataset.style === 'classic') return;
+        if (!renderer) return;
         try { renderer.update(); } catch (error) { renderer = null; document.documentElement.dataset.renderer = 'css'; window.glassQA.reason = error.message; }
       }
       new MutationObserver(drawGlass).observe(clock, {childList: true, subtree: true});
@@ -133,15 +133,11 @@
       function alignGlyphs() {
         const style=getComputedStyle(clock);
         context.font=`${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
-        const widths=cells.map((cell,index)=>{if(index===2)return parseFloat(getComputedStyle(clock).fontSize)*.105;
-          const m=context.measureText(cell.lastElementChild?.textContent||'0');
-          return m.actualBoundingBoxLeft+m.actualBoundingBoxRight;
-        });
         cells.forEach((cell,index)=>{
-          cell.style.width=`${widths[index]}px`;
           if(index===2)return;
           for(const glyph of cell.children){const m=context.measureText(glyph.textContent);
-            glyph.style.left=`${m.actualBoundingBoxLeft}px`;
+            // Fixed tabular cells; center ink without ever moving a cell or its neighbours.
+            glyph.style.left=`${(parseFloat(cell.style.width)-m.actualBoundingBoxLeft-m.actualBoundingBoxRight)/2+m.actualBoundingBoxLeft}px`;
           }
         });
       }
