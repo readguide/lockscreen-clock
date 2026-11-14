@@ -29,14 +29,54 @@
     }
     .digit, .colon { position: relative; display: block; overflow: hidden; height: var(--ink-height); }
     .glyph { position: absolute; left: 0; top: var(--glyph-top); display: block; }
+    /* Keep the measured colon advance; center smaller dots on the visible digit ink. */
+    .colon .glyph { visibility: hidden; }
+    .colon::before, .colon::after {
+      content: ''; position: absolute; left: 50%; width: .105em; height: .105em;
+      border-radius: 50%; background: currentColor; transform: translate(-50%, -50%);
+    }
+    .colon::before { top: 32%; }
+    .colon::after { top: 68%; }
+    .styles { position: fixed; bottom: max(24px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); display: flex; gap: 4px; padding: 4px; border: 1px solid #ffffff20; border-radius: 24px; background: #ffffff08; }
+    .styles button { appearance: none; border: 0; border-radius: 20px; background: transparent; color: #999a9e; font: 13px -apple-system, sans-serif; min-height: 44px; padding: 0 18px; cursor: pointer; white-space: nowrap; }
+    .styles button[aria-pressed="true"] { background: #ffffff16; color: #eeeef0; }
+    :focus-visible { outline: 2px solid #b6cfeb; outline-offset: 5px; }
+    :fullscreen .styles, .is-fullscreen .styles { display: none; }
+    @media (display-mode: standalone) { .styles { display: none; } }
+    main::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; }
+    [data-style="glass"] main::before { opacity: 1; background: radial-gradient(ellipse at 18% 30%, #718aa52b, transparent 47%), radial-gradient(ellipse at 83% 72%, #8b786024, transparent 45%); }
+    [data-style="glass"] .glyph {
+      color: transparent; -webkit-text-fill-color: transparent;
+      background: linear-gradient(145deg, #ffffffdb 0%, #dceaf956 19%, #627b9038 37%, #ffffffb0 49%, #a2bddf29 53%, #384b6224 72%, #e7f1ffbd 100%);
+      background-clip: text; -webkit-background-clip: text;
+      -webkit-text-stroke: 1px #e5f0ff7a;
+      filter: drop-shadow(0 1px 0 #ffffff70) drop-shadow(0 6px 12px #0009);
+      text-shadow: 1px 0 1px #cde5ff24, -1px -1px 0 #ffffff28;
+    }
+    [data-style="glass"] .colon::before, [data-style="glass"] .colon::after { background: linear-gradient(145deg, #ffffffc9, #a3c6e43b 40%, #667d9230 62%, #eff6ffbd); border: 1px solid #e5f0ff7a; box-shadow: inset 1px 1px 2px #ffffff70, inset -1px -2px 3px #0008, 0 4px 8px #0006; }
     @media (prefers-reduced-motion: reduce) { .glyph { animation: none !important; } }
   </style>
 </head>
 <body>
-  <main><time id="clock" aria-label="Current local time"></time></main>
+  <main><time id="clock" tabindex="0" title="Toggle fullscreen" aria-label="Current local time"></time></main>
+  <nav class="styles" aria-label="Clock appearance">
+    <button type="button" data-mode="classic" aria-pressed="true">经典</button>
+    <button type="button" data-mode="glass" aria-pressed="false">液态玻璃</button>
+  </nav>
   <script>
     (() => {
       const clock = document.getElementById('clock');
+      const styleButtons = document.querySelectorAll('[data-mode]');
+      function setStyle(mode) {
+        const selected = mode === 'glass' ? 'glass' : 'classic';
+        document.documentElement.dataset.style = selected;
+        styleButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mode === selected)));
+        try { localStorage.setItem('clock-style', selected); } catch (_) { /* Private/file contexts may deny storage. */ }
+      }
+      let savedStyle;
+      try { savedStyle = localStorage.getItem('clock-style'); } catch (_) {}
+      setStyle(savedStyle);
+      styleButtons.forEach(button => button.addEventListener('click', event => { event.stopPropagation(); setStyle(button.dataset.mode); }));
       const reduced = matchMedia('(prefers-reduced-motion: reduce)');
       const cells = Array.from('00:00', (char, index) => {
         const cell = document.createElement('span');
@@ -79,8 +119,9 @@
           cell.replaceChildren(...(animate && old ? [old, next] : [next]));
           if (animate && old && index !== 2) {
             const options = { duration: 680, easing: 'cubic-bezier(.22, .75, .18, 1)', fill: 'forwards' };
-            const outgoing = old.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-115%)' }], options);
-            const incoming = next.animate([{ transform: 'translateY(115%)' }, { transform: 'translateY(0)' }], options);
+            // Browser-rendered, in-place transition; not a replica of Apple's native animation.
+            const outgoing = old.animate([{ opacity: 1, filter: 'blur(0)' }, { opacity: 0, filter: 'blur(2px)' }], options);
+            const incoming = next.animate([{ opacity: 0, filter: 'blur(2px)' }, { opacity: 1, filter: 'blur(0)' }], options);
             incoming.onfinish = () => { old.remove(); outgoing.cancel(); incoming.cancel(); };
           }
         });
@@ -115,8 +156,12 @@
       window.addEventListener('pageshow', () => { sync(); fit(); });
       window.addEventListener('focus', () => sync());
       window.addEventListener('resize', fit);
-      document.addEventListener('fullscreenchange', fit);
-      document.addEventListener('webkitfullscreenchange', fit);
+      function fullscreenState() { document.documentElement.classList.toggle('is-fullscreen', !!(document.fullscreenElement || document.webkitFullscreenElement)); fit(); }
+      document.addEventListener('fullscreenchange', fullscreenState);
+      document.addEventListener('webkitfullscreenchange', fullscreenState);
+      clock.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); fullscreen(); }
+      });
       document.fonts.ready.then(fit);
       sync();
       fit();
