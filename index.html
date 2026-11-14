@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -18,11 +18,11 @@
     * { box-sizing: border-box; }
     html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
     body { background: #08090b; }
-    main { position: fixed; inset: 0; display: grid; place-items: center; background: #08090b; }
+    main { position: fixed; inset: 0; display: grid; place-items: center; background: radial-gradient(ellipse at 25% 35%, #29494f, transparent 65%), radial-gradient(ellipse at 85% 75%, #594339, transparent 65%), #111b25; }
     time {
       display: flex; flex: none; white-space: nowrap;
-      font-family: ui-rounded, "SF Pro Rounded", "Clock Condensed", -apple-system, BlinkMacSystemFont, sans-serif;
-      font-size: 100px; font-weight: 700; font-synthesis: none;
+      font-family: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      font-size: 100px; font-weight: 600; font-synthesis: none;
       font-variant-numeric: tabular-nums; font-feature-settings: "tnum";
       line-height: 1; user-select: none; -webkit-user-select: none;
       -webkit-tap-highlight-color: transparent; cursor: pointer;
@@ -38,16 +38,19 @@
     .colon::before { top: 32%; }
     .colon::after { top: 68%; }
     .styles { position: fixed; bottom: max(24px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); display: flex; gap: 4px; padding: 4px; border: 1px solid #ffffff20; border-radius: 24px; background: #ffffff08; }
-    .styles button { appearance: none; border: 0; border-radius: 20px; background: transparent; color: #999a9e; font: 13px -apple-system, sans-serif; min-height: 44px; padding: 0 18px; cursor: pointer; white-space: nowrap; }
+    .styles button { appearance: none; border: 0; border-radius: 20px; background: transparent; color: #c5c7cc; font: 13px -apple-system, sans-serif; min-height: 44px; padding: 0 12px; cursor: pointer; white-space: nowrap; }
     .styles button[aria-pressed="true"] { background: #ffffff16; color: #eeeef0; }
     :focus-visible { outline: 2px solid #b6cfeb; outline-offset: 5px; }
     :fullscreen .styles, .is-fullscreen .styles { display: none; }
     @media (display-mode: standalone) { .styles { display: none; } }
     #glass-scene { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; display: none; }
-    [data-style="glass"] #glass-scene { display: block; }
-    [data-style="glass"] time { color: transparent; }
-    [data-style="glass"] .glyph { color: transparent; }
-    [data-style="glass"] .colon::before, [data-style="glass"] .colon::after { background: transparent; }
+    [data-renderer="webgl"] #glass-scene { display: block; }
+    [data-renderer="webgl"] time { color: transparent; }
+    [data-renderer="webgl"] .glyph { color: transparent; }
+    [data-renderer="webgl"] .colon::before, [data-renderer="webgl"] .colon::after { background: transparent; }
+    [data-style="classic"] main { background: #101317; }
+    html:not([data-renderer="webgl"]):not([data-style="classic"]) time { color: #edf4f7; text-shadow: 0 1px 1px #fff8, 0 3px 18px #c7e5ef38; }
+    @media (max-height: 430px) { .styles { bottom: 8px; } .styles button { min-height: 44px; } }
     @media (prefers-reduced-motion: reduce) { .glyph { animation: none !important; } }
   </style>
 </head>
@@ -55,39 +58,21 @@
   <main>
     <!-- Both outside and inside the digits use this SAME scene. The masked copy
          is displaced, not a text gradient. No backdrop-filter dependency. -->
-    <svg id="glass-scene" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <defs>
-        <radialGradient id="ambient"><stop stop-color="#64645f" stop-opacity=".32"/><stop offset="1" stop-color="#08090b" stop-opacity="0"/></radialGradient>
-        <linearGradient id="ribbon" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#c8c8bf" stop-opacity="0"/><stop offset=".48" stop-color="#c8c8bf" stop-opacity=".08"/><stop offset=".52" stop-color="#c8c8bf" stop-opacity=".19"/><stop offset="1" stop-color="#c8c8bf" stop-opacity="0"/></linearGradient>
-        <linearGradient id="rim" x1="0" y1="0" x2=".6" y2="1"><stop stop-color="#fff" stop-opacity=".85"/><stop offset=".25" stop-color="#fff" stop-opacity=".20"/><stop offset=".52" stop-color="#fff" stop-opacity=".10"/><stop offset=".8" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity=".8"/></linearGradient>
-        <filter id="soft-environment" x="-50%" y="-100%" width="200%" height="300%"><feGaussianBlur stdDeviation=".025"/></filter>
-        <g id="environment">
-          <ellipse cx=".3" cy=".43" rx=".7" ry=".52" fill="url(#ambient)"/>
-          <ellipse cx=".85" cy=".73" rx=".6" ry=".6" fill="url(#ambient)" opacity=".45"/>
-          <path d="M-.2 .7 Q.3 .1 1.2 .48 L1.2 .59 Q.3 .24 -.2 .85Z" fill="url(#ribbon)" opacity=".45" filter="url(#soft-environment)"/>
-        </g>
-        <filter id="refraction" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
-          <feTurbulence type="fractalNoise" baseFrequency=".006 .012" numOctaves="1" seed="8" result="normal"/>
-          <feDisplacementMap in="SourceGraphic" in2="normal" scale="32" xChannelSelector="R" yChannelSelector="G"/>
-          <feComponentTransfer><feFuncR type="linear" slope="1.08" intercept="0"/><feFuncG type="linear" slope="1.08" intercept="0"/><feFuncB type="linear" slope="1.08" intercept="0"/></feComponentTransfer>
-        </filter>
-        <mask id="digit-mask" maskUnits="userSpaceOnUse"><g id="mask-glyphs" fill="white"/></mask>
-      </defs>
-      <g id="environment-base"><use href="#environment"/></g>
-      <g mask="url(#digit-mask)"><g filter="url(#refraction)"><g id="environment-lens"><use href="#environment"/></g></g></g>
-      <g id="glass-rims" fill="none" stroke="url(#rim)" stroke-width=".85"/>
-    </svg>
+    <canvas id="glass-scene" aria-hidden="true"></canvas>
     <time id="clock" tabindex="0" title="Toggle fullscreen" aria-label="Current local time"></time></main>
   <nav class="styles" aria-label="Clock appearance">
-    <button type="button" data-mode="classic" aria-pressed="true">经典</button>
-    <button type="button" data-mode="glass" aria-pressed="false">液态玻璃</button>
+    <button type="button" data-mode="classic" aria-pressed="true">经典白</button>
+    <button type="button" data-mode="glass" aria-pressed="false">通透白</button>
+    <button type="button" data-mode="frost" aria-pressed="false">柔雾白</button>
+    <button type="button" data-mode="prism" aria-pressed="false">冷暖折射</button>
   </nav>
-  <script>
+  <script type="module">
+    import {createDigitGlass} from "./digit-glass.js";
     (() => {
       const clock = document.getElementById('clock');
       const styleButtons = document.querySelectorAll('[data-mode]');
       function setStyle(mode) {
-        const selected = mode === 'glass' ? 'glass' : 'classic';
+        const selected = ['classic','glass','frost','prism'].includes(mode) ? mode : 'classic';
         document.documentElement.dataset.style = selected;
         styleButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mode === selected)));
         try { localStorage.setItem('clock-style', selected); } catch (_) { /* Private/file contexts may deny storage. */ }
@@ -105,41 +90,18 @@
         return cell;
       });
       const scene = document.getElementById('glass-scene');
-      const maskGlyphs = document.getElementById('mask-glyphs');
-      const rims = document.getElementById('glass-rims');
+      let renderer;
+      try { renderer = createDigitGlass(scene, clock, cells); }
+      catch (error) { document.documentElement.dataset.renderer = 'css'; window.glassQA = {fallback: true, reason: error.message, draws: 0}; }
+      scene.addEventListener('webglcontextlost', event => { event.preventDefault(); renderer = null; document.documentElement.dataset.renderer = 'css'; });
       let glassFrame;
       function drawGlass() {
         cancelAnimationFrame(glassFrame);
-        if (document.documentElement.dataset.style !== 'glass') return;
-        const style = getComputedStyle(clock), size = parseFloat(style.fontSize);
-        context.font = `${style.fontWeight} ${size}px ${style.fontFamily}`;
-        const metrics = context.measureText('88:88');
-        const baseline = (size - metrics.fontBoundingBoxAscent - metrics.fontBoundingBoxDescent) / 2 + metrics.fontBoundingBoxAscent;
-        const fragment = document.createDocumentFragment();
-        for (const cell of cells) {
-          const box = cell.getBoundingClientRect();
-          if (cell.classList.contains('colon')) {
-            for (const y of [.32, .68]) {
-              const dot = document.createElementNS(scene.namespaceURI, 'circle');
-              dot.setAttribute('cx', box.x + box.width / 2); dot.setAttribute('cy', box.y + box.height * y); dot.setAttribute('r', size * .0525); fragment.append(dot);
-            }
-          } else for (const glyph of cell.children) {
-            const box = glyph.getBoundingClientRect();
-            const text = document.createElementNS(scene.namespaceURI, 'text');
-            text.setAttribute('x', box.x); text.setAttribute('y', box.y + baseline);
-            text.style.fontFamily = style.fontFamily; text.style.fontSize = style.fontSize; text.style.fontWeight = style.fontWeight;
-            text.style.fontVariantNumeric = 'tabular-nums'; text.setAttribute('opacity', getComputedStyle(glyph).opacity);
-            text.textContent = glyph.textContent; fragment.append(text);
-          }
-        }
-        maskGlyphs.replaceChildren(fragment);
-        rims.replaceChildren(...Array.from(maskGlyphs.children, node => node.cloneNode(true)));
-        const transform = `scale(${innerWidth} ${innerHeight})`;
-        document.getElementById('environment-base').setAttribute('transform', transform);
-        document.getElementById('environment-lens').setAttribute('transform', transform);
-        if (clock.getAnimations({subtree: true}).length) glassFrame = requestAnimationFrame(drawGlass);
+        document.documentElement.dataset.renderer = renderer && document.documentElement.dataset.style !== 'classic' ? 'webgl' : 'css';
+        if (!renderer || document.documentElement.dataset.style === 'classic') return;
+        try { renderer.update(); } catch (error) { renderer = null; document.documentElement.dataset.renderer = 'css'; window.glassQA.reason = error.message; }
       }
-      new MutationObserver(drawGlass).observe(clock, {childList: true, subtree: true, attributes: true});
+      new MutationObserver(drawGlass).observe(clock, {childList: true, subtree: true});
       new MutationObserver(drawGlass).observe(document.documentElement, {attributes: true, attributeFilter: ['data-style']});
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
@@ -153,7 +115,7 @@
         const colonWidth = context.measureText(':').width;
         const ascent = metrics.actualBoundingBoxAscent;
         const descent = metrics.actualBoundingBoxDescent;
-        const size = Math.min(innerWidth * .92 / (digitWidth * 4 + colonWidth), innerHeight * .8 / (ascent + descent)) * 100;
+        const size = Math.min(innerWidth * .92 / (digitWidth * 4 + colonWidth), (innerHeight < 430 ? innerHeight - 140 : innerHeight * .8) / (ascent + descent)) * 100;
         const scale = size / 100;
         clock.style.fontSize = `${size}px`;
         // Crop the line box to actual ink, so the visible numbers are centered too.
@@ -220,6 +182,7 @@
         if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); fullscreen(); }
       });
       document.fonts.ready.then(fit);
+      window.clockQA = {render: text => render(text, true), fit};
       sync();
       fit();
     })();
