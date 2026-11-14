@@ -16,40 +16,20 @@
     @font-face { font-family: "Clock Condensed"; src: url("assets/BarlowCondensed-SemiBold.ttf") format("truetype"); font-weight: 600; font-display: swap; }
     :root { color-scheme: dark; background: #08090b; color: #eeeef0; }
     * { box-sizing: border-box; }
-    html, body { margin: 0; min-height: 100%; }
-    body { min-height: 100svh; background: #08090b; }
-    main {
-      min-height: 100svh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding-top: max(env(safe-area-inset-top, 0px), 14svh);
-      background: #08090b;
-    }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+    body { background: #08090b; }
+    main { position: fixed; inset: 0; display: grid; place-items: center; background: #08090b; }
     time {
-      display: block;
-      flex: none;
-      white-space: nowrap;
-      /* ui-rounded selects Apple's native rounded system face on Apple platforms. */
+      display: flex; flex: none; white-space: nowrap;
       font-family: ui-rounded, "SF Pro Rounded", "Clock Condensed", -apple-system, BlinkMacSystemFont, sans-serif;
-      font-size: 40vw;
-      font-weight: 700;
-      font-synthesis: none;
-      font-stretch: condensed;
-      font-variant-numeric: tabular-nums;
-      font-feature-settings: "tnum";
-      font-optical-sizing: auto;
-      letter-spacing: -0.055em;
-      line-height: 1;
-      text-align: center;
-      transform: scaleX(.86);
-      transform-origin: center top;
-      user-select: none;
-      -webkit-user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      cursor: pointer;
+      font-size: 100px; font-weight: 700; font-synthesis: none;
+      font-variant-numeric: tabular-nums; font-feature-settings: "tnum";
+      line-height: 1; user-select: none; -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent; cursor: pointer;
     }
-    @media (orientation: landscape) { main { padding-top: max(env(safe-area-inset-top, 0px), 10svh); } }
+    .digit, .colon { position: relative; display: block; overflow: hidden; height: var(--ink-height); }
+    .glyph { position: absolute; left: 0; top: var(--glyph-top); display: block; }
+    @media (prefers-reduced-motion: reduce) { .glyph { animation: none !important; } }
   </style>
 </head>
 <body>
@@ -57,27 +37,65 @@
   <script>
     (() => {
       const clock = document.getElementById('clock');
-      let timer;
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+      const cells = Array.from('00:00', (char, index) => {
+        const cell = document.createElement('span');
+        cell.className = index === 2 ? 'colon' : 'digit';
+        cell.setAttribute('aria-hidden', 'true');
+        clock.append(cell);
+        return cell;
+      });
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      let timer, previous = '', lastUpdate = 0;
       function fit() {
-        // Measure the widest tabular time, not the current (potentially narrow) digits.
-        const current = clock.textContent;
-        clock.textContent = '88:88';
         clock.style.fontSize = '100px';
-        const range = document.createRange();
-        range.selectNodeContents(clock);
-        const unitWidth = range.getBoundingClientRect().width / 100;
-        const width = Math.min(innerWidth * .92, 1400);
-        clock.style.fontSize = `${Math.min(width / unitWidth, innerHeight * .72)}px`;
-        clock.textContent = current;
+        const style = getComputedStyle(clock);
+        context.font = `${style.fontWeight} 100px ${style.fontFamily}`;
+        const metrics = context.measureText('88:88');
+        const digitWidth = Math.max(...Array.from('0123456789', n => context.measureText(n).width));
+        const colonWidth = context.measureText(':').width;
+        const ascent = metrics.actualBoundingBoxAscent;
+        const descent = metrics.actualBoundingBoxDescent;
+        const size = Math.min(innerWidth * .92 / (digitWidth * 4 + colonWidth), innerHeight * .8 / (ascent + descent)) * 100;
+        const scale = size / 100;
+        clock.style.fontSize = `${size}px`;
+        // Crop the line box to actual ink, so the visible numbers are centered too.
+        const top = ((metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent - 100) / 2 - metrics.fontBoundingBoxAscent + ascent) * scale;
+        clock.style.setProperty('--ink-height', `${(ascent + descent) * scale}px`);
+        clock.style.setProperty('--glyph-top', `${top}px`);
+        cells.forEach((cell, index) => cell.style.width = `${(index === 2 ? colonWidth : digitWidth) * scale}px`);
       }
-      function sync() {
+      function render(text, animate) {
+        cells.forEach((cell, index) => {
+          if (previous[index] === text[index]) {
+            if (!animate) cell.getAnimations({ subtree: true }).forEach(a => a.finish());
+            return;
+          }
+          cell.getAnimations({ subtree: true }).forEach(a => a.cancel());
+          const old = cell.lastElementChild;
+          const next = document.createElement('span');
+          next.className = 'glyph'; next.textContent = text[index];
+          cell.replaceChildren(...(animate && old ? [old, next] : [next]));
+          if (animate && old && index !== 2) {
+            const options = { duration: 680, easing: 'cubic-bezier(.22, .75, .18, 1)', fill: 'forwards' };
+            const outgoing = old.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-115%)' }], options);
+            const incoming = next.animate([{ transform: 'translateY(115%)' }, { transform: 'translateY(0)' }], options);
+            incoming.onfinish = () => { old.remove(); outgoing.cancel(); incoming.cancel(); };
+          }
+        });
+        previous = text;
+        clock.dateTime = text;
+        clock.setAttribute('aria-label', text);
+      }
+      function sync(allowMotion = false) {
         clearTimeout(timer);
         const now = new Date();
         const text = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-        clock.textContent = text;
-        clock.dateTime = text;
-        clock.setAttribute('aria-label', text);
-        timer = setTimeout(sync, 60000 - (Date.now() % 60000));
+        const animate = allowMotion && previous !== '' && !document.hidden && !reduced.matches && Date.now() - lastUpdate < 65000;
+        render(text, animate);
+        lastUpdate = Date.now();
+        timer = setTimeout(() => sync(true), 60000 - (Date.now() % 60000));
       }
       async function fullscreen() {
         try {
@@ -95,7 +113,7 @@
         if (document.visibilityState === 'visible') { sync(); fit(); }
       });
       window.addEventListener('pageshow', () => { sync(); fit(); });
-      window.addEventListener('focus', sync);
+      window.addEventListener('focus', () => sync());
       window.addEventListener('resize', fit);
       document.addEventListener('fullscreenchange', fit);
       document.addEventListener('webkitfullscreenchange', fit);
