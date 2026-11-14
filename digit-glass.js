@@ -8,7 +8,11 @@ export function createDigitGlass(canvas, clock, cells) {
   const compile=(type,src)=>{const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;};
   // Float distance texture avoids byte-channel carry interpolation artifacts.
   const floatLinear=gl.getExtension('OES_texture_float_linear');
-  const fs=FS_GLASS;
+  // Opacity is applied after the unchanged optical material, in screen space.
+  if(!FS_GLASS.includes('uniform sampler2D uDigitSDF;') || !FS_GLASS.includes('outColor = vec4(col * aa, a);'))throw Error('Glass fade shader anchors changed');
+  const fs=FS_GLASS.replace('uniform sampler2D uDigitSDF;', 'uniform sampler2D uDigitSDF;\nuniform float uCellFade[5];\nuniform float uCellRight[5];').replace('outColor = vec4(col * aa, a);', `float fade = uCellFade[4];
+  for (int j=0;j<5;j++) { if (vUV.x < uCellRight[j]) { fade=uCellFade[j]; break; } }
+  outColor = vec4(col * aa * fade, a * fade);`);
   const p=gl.createProgram();gl.attachShader(p,compile(gl.VERTEX_SHADER,VS_FULLSCREEN));gl.attachShader(p,compile(gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));
   gl.useProgram(p);const loc=n=>gl.getUniformLocation(p,n), f=(n,v)=>gl.uniform1f(loc(n),v),i=(n,v)=>gl.uniform1i(loc(n),v),v2=(n,a,b)=>gl.uniform2f(loc(n),a,b);
   const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([0,0,1,0,0,1,1,1]),gl.STATIC_DRAW);const a=gl.getAttribLocation(p,'aPos');gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
@@ -19,9 +23,52 @@ export function createDigitGlass(canvas, clock, cells) {
   const mask=document.createElement('canvas'), ctx=mask.getContext('2d',{willReadFrequently:true}), env=document.createElement('canvas'), ec=env.getContext('2d');
   const glyphCache=new Map();
   let key='', material='';window.glassQA={draws:0,sdfBuilds:0,textureUploads:0,programs:1,geometryUpdates:[],updates:[],glError:()=>gl.getError(),source:'Oliverrr2424/webgl-apple-liquid-glass V1 FS_GLASS, e8030bd'};
-  function update(){
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  let frame=0, transition=null, displayed='', layout='';
+  const fades=new Float32Array([1,1,1,1,1]);
+  function draw(){
+    if(material==='classic')return;
+    gl.useProgram(p);gl.uniform1fv(loc('uCellFade[0]'),fades);
+    gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);gl.disable(gl.BLEND);
+    window.glassQA.draws++;
+  }
+  function settle(){if(transition)window.glassQA.lastDrawKey=null;cancelAnimationFrame(frame);frame=0;transition=null;fades.fill(1);window.glassQA.transition=null;}
+  function tick(now){
+    if(!transition)return;
+    const t=transition;
+    if(document.hidden||reduced.matches){settle();update(true);return;}
+    let elapsed=now-t.start;
+    if(!t.swapped && elapsed>=340){
+      t.swapped=true;update(true);t.start=performance.now()-340;elapsed=340;
+    }
+    const progress=Math.min(1,elapsed<340?elapsed/340:(elapsed-340)/340);
+    const eased=progress*progress*(3-2*progress);
+    t.changed.forEach((changed,j)=>fades[j]=changed?(t.swapped?eased:1-eased):1);
+    draw();
+    if(elapsed>=680){settle();window.glassQA.transition=null;return;}
+    frame=requestAnimationFrame(tick);
+  }
+  reduced.addEventListener('change',()=>{settle();update(true);});
+  document.addEventListener('visibilitychange',()=>{settle();update(true);});
+  function update(internal=false){
+    // Do not consume the pending geometry key while hidden. Visibility restore
+    // reads the latest DOM once, then presents a fully opaque current frame.
+    if(document.hidden){settle();window.glassQA.lastDrawKey=null;return;}
     const chars=cells.map(c=>c.lastElementChild?.textContent||'').join('');const nextKey=[innerWidth,innerHeight,devicePixelRatio,getComputedStyle(clock).font,chars].join('|');
     const mode=document.documentElement.dataset.style;
+    const nextLayout=[innerWidth,innerHeight,devicePixelRatio,getComputedStyle(clock).font].join('|');
+    if(!internal){
+      if(transition && transition.target===chars && layout===nextLayout && material===mode && clock.dataset.motion==='true')return;
+      const canAnimate=!transition && displayed && displayed!==chars && layout===nextLayout && material===mode && mode!=='classic' && clock.dataset.motion==='true' && !document.hidden && !reduced.matches;
+      settle();
+      if(canAnimate){
+        transition={target:chars,start:performance.now(),swapped:false,changed:[...chars].map((c,j)=>c!==displayed[j])};
+        window.glassQA.transition={from:displayed,to:chars};frame=requestAnimationFrame(tick);return;
+      }
+    }
+    layout=nextLayout;
+    gl.uniform1fv(loc('uCellRight[0]'),new Float32Array(cells.map((cell,j)=>j===4?1:(cell.getBoundingClientRect().right+cells[j+1].getBoundingClientRect().left)/2/innerWidth)));
     // Neutral white finishes: retain upstream optics; no dispersion or stretched rims.
     // Upstream Schlick Fresnel + directional specular/inner line, tuned for a black
     // scene: white transmission remains legible, no invented wallpaper or dispersion.
@@ -35,7 +82,10 @@ export function createDigitGlass(canvas, clock, cells) {
     if(key!==nextKey){
       const beforeBuilds=window.glassQA.sdfBuilds;
       const w=innerWidth,h=innerHeight, scale=2, sw=w*scale,sh=h*scale,dpr=Math.min(devicePixelRatio||1,2);
-      key=nextKey;canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);env.width=w;env.height=h;gl.viewport(0,0,canvas.width,canvas.height);v2('uRes',w,h);
+      key=nextKey;displayed=chars;
+      if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}
+      if(env.width!==w||env.height!==h){env.width=w;env.height=h;}
+      gl.viewport(0,0,canvas.width,canvas.height);v2('uRes',w,h);
       const style=getComputedStyle(clock),size=parseFloat(style.fontSize);ctx.font=`${style.fontWeight} ${size}px ${style.fontFamily}`;ctx.fillStyle='white';const metrics=ctx.measureText('88:88');const baseline=(size-metrics.fontBoundingBoxAscent-metrics.fontBoundingBoxDescent)/2+metrics.fontBoundingBoxAscent;
       // Cache each padded glyph field independently of material and viewport position.
       // A 24px exterior margin exceeds every finish's bevel/shadow reach.
@@ -75,12 +125,9 @@ export function createDigitGlass(canvas, clock, cells) {
       window.glassQA.geometryUpdates.push({chars,ms:performance.now()-start,builds:window.glassQA.sdfBuilds-beforeBuilds});
     }
     if(mode==='classic'){material=mode;return;}
-    if(material===mode && window.glassQA.lastDrawKey===key)return;
+    if(material===mode && window.glassQA.lastDrawKey===key && !internal)return;
     material=mode;window.glassQA.lastDrawKey=key;
-    // Material outputs only digits; backdrop pass is the same source canvas.
-    gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.useProgram(p);gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);gl.disable(gl.BLEND);
-    window.glassQA.draws++;window.glassQA.updates.push({chars,ms:performance.now()-start,w:innerWidth,h:innerHeight});
+    draw();window.glassQA.updates.push({chars,ms:performance.now()-start,w:innerWidth,h:innerHeight});
   }
   return {update};
 }

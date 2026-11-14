@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/Users/en/lockscreen-clock/transition_test.py", line 24, in <module>
+    asyncio.run(main())
+  File "/Users/en/.local/share/uv/python/cpython-3.11.16-macos-aarch64-none/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/Users/en/.local/share/uv/python/cpython-3.11.16-macos-aarch64-none/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/en/.local/share/uv/python/cpython-3.11.16-macos-aarch64-none/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/Users/en/lockscreen-clock/transition_test.py", line 19, in main
+    assert mid[4]<before[4]*.65,dict(before=before,mid=mid)
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'before': [51.831254724111865, 94.84066003049054, 43.026210072506366, 83.3883149493319, 104.1874887521146], 'mid': [51.831254724111865, 94.84066003049054, 43.026210072506366, 83.3883149493319, 101.55256811719397]}

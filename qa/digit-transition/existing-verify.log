@@ -1,0 +1,56 @@
+/Users/en/lockscreen-clock/verify.py:30: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  assert all(r==g==b for r,g,b in image.getdata()),(name,mode,'non-neutral pixel')
+[
+  {
+    "size": "desktop",
+    "width": 1440,
+    "height": 900,
+    "styles": 4,
+    "centered": true,
+    "idle_draw_delta": 0,
+    "minute_bounds_unchanged": true,
+    "persistence": true,
+    "fullscreen": true,
+    "console_errors": []
+  },
+  {
+    "size": "wide",
+    "width": 1920,
+    "height": 1080,
+    "styles": 4,
+    "centered": true,
+    "idle_draw_delta": 0,
+    "minute_bounds_unchanged": true,
+    "persistence": true,
+    "fullscreen": true,
+    "console_errors": []
+  },
+  {
+    "size": "mobile",
+    "width": 390,
+    "height": 844,
+    "styles": 4,
+    "centered": true,
+    "idle_draw_delta": 0,
+    "minute_bounds_unchanged": true,
+    "persistence": true,
+    "fullscreen": true,
+    "console_errors": []
+  },
+  {
+    "size": "landscape",
+    "width": 844,
+    "height": 390,
+    "styles": 4,
+    "centered": true,
+    "idle_draw_delta": 0,
+    "minute_bounds_unchanged": true,
+    "persistence": true,
+    "fullscreen": true,
+    "console_errors": []
+  },
+  {
+    "fallback": "CSS white glass",
+    "verified": true
+  }
+]

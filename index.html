@@ -142,6 +142,8 @@
         });
       }
       function render(text, animate) {
+        clock.dataset.motion=String(animate);
+        const domAnimate=animate && document.documentElement.dataset.renderer!=='webgl';
         cells.forEach((cell, index) => {
           if (previous[index] === text[index]) {
             if (!animate) cell.getAnimations({ subtree: true }).forEach(a => a.finish());
@@ -151,8 +153,8 @@
           const old = cell.lastElementChild;
           const next = document.createElement('span');
           next.className = 'glyph'; next.textContent = text[index];
-          cell.replaceChildren(...(animate && old ? [old, next] : [next]));
-          if (animate && old && index !== 2) {
+          cell.replaceChildren(...(domAnimate && old ? [old, next] : [next]));
+          if (domAnimate && old && index !== 2) {
             const options = { duration: 680, easing: 'cubic-bezier(.22, .75, .18, 1)', fill: 'forwards' };
             // Browser-rendered, in-place transition; not a replica of Apple's native animation.
             const outgoing = old.animate([{ opacity: 1, filter: 'blur(0)' }, { opacity: 0, filter: 'blur(2px)' }], options);
