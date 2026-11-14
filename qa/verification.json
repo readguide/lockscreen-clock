@@ -1,0 +1,54 @@
+[
+  {
+    "size": "desktop",
+    "width": 1440,
+    "height": 900,
+    "styles": 4,
+    "centered": true,
+    "idle_draw_delta": 0,
+    "minute_bounds_unchanged": true,
+    "persistence": true,
+    "fullscreen": true,
+    "console_errors": []
+  },
+  {
+    "size": "wide",
+    "width": 1920,
+    "height": 1080,
+    "styles": 4,
+    "centered": true,
+    "idle_draw_delta": 0,
+    "minute_bounds_unchanged": true,
+    "persistence": true,
+    "fullscreen": true,
+    "console_errors": []
+  },
+  {
+    "size": "mobile",
+    "width": 390,
+    "height": 844,
+    "styles": 4,
+    "centered": true,
+    "idle_draw_delta": 0,
+    "minute_bounds_unchanged": true,
+    "persistence": true,
+    "fullscreen": true,
+    "console_errors": []
+  },
+  {
+    "size": "landscape",
+    "width": 844,
+    "height": 390,
+    "styles": 4,
+    "centered": true,
+    "idle_draw_delta": 0,
+    "minute_bounds_unchanged": true,
+    "persistence": true,
+    "fullscreen": true,
+    "console_errors": []
+  },
+  {
+    "fallback": "CSS white glass",
+    "verified": true
+  }
+]

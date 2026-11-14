@@ -1,0 +1,5 @@
+{
+  "midnight_timer_rollover": "23:59 -> 00:00",
+  "standalone_media_emulated": false,
+  "standalone_controls_hidden": false
+}
