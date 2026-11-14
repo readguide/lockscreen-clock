@@ -17,21 +17,31 @@ export function createDigitGlass(canvas, clock, cells) {
   gl.useProgram(p);const loc=n=>gl.getUniformLocation(p,n), f=(n,v)=>gl.uniform1f(loc(n),v),i=(n,v)=>gl.uniform1i(loc(n),v),v2=(n,a,b)=>gl.uniform2f(loc(n),a,b);
   const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([0,0,1,0,0,1,1,1]),gl.STATIC_DRAW);const a=gl.getAttribLocation(p,'aPos');gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
   const tex=(unit)=>{const t=gl.createTexture();gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,t);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);return t;};
-  const bg=tex(0), sdf=tex(1); i('uSrc',0);i('uBlurSrc',0);i('uDigitSDF',1);
+  const bg=tex(0); let sdf=tex(1), spareSDF=tex(1); i('uSrc',0);i('uBlurSrc',0);i('uDigitSDF',1);
   const params={uBevel:5,uHeight:8,uSizeAdaptation:0,uIOR:1.48,uDispersion:0,uBlurPlateau:0,uBlurRim:0,uOpticalDensity:0,uMips:1,uSpecular:.55,uSpecPower:18,uHighlightAdapt:0,uHighlightWidth:.8,uHighlightSharpness:1,uHighlightBase:.8,uFresnel:1,uSat:1,uBright:0,uTintAmount:.008,uTintAdapt:0,uShadow:0,uShadowSize:4,uShadowOffset:2,uEdgeLine:.28,uEdgeWidth:.6,uEdgeDark:.08,uRefractScale:1,uMeniscus:1};
   for(const [k,v] of Object.entries(params))f(k,v);gl.uniform3f(loc('uTintColor'),.75,.77,.8);v2('uLightDir',-.6,.8);
   const mask=document.createElement('canvas'), ctx=mask.getContext('2d',{willReadFrequently:true}), env=document.createElement('canvas'), ec=env.getContext('2d');
   const glyphCache=new Map();
   let key='', material='';window.glassQA={draws:0,sdfBuilds:0,textureUploads:0,programs:1,geometryUpdates:[],updates:[],glError:()=>gl.getError(),source:'Oliverrr2424/webgl-apple-liquid-glass V1 FS_GLASS, e8030bd'};
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  const FADE_OUT_MS=110, FADE_IN_MS=220;
+  const FADE_OUT_MS=110, FADE_IN_MS=220, FADE_IN_DELAY_MS=80;
   let frame=0, transition=null, displayed='', layout='';
   const fades=new Float32Array([1,1,1,1,1]);
   function draw(){
     if(material==='classic')return;
-    gl.useProgram(p);gl.uniform1fv(loc('uCellFade[0]'),fades);
+    gl.useProgram(p);
     gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);gl.disable(gl.BLEND);
+    gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+    gl.activeTexture(gl.TEXTURE1);
+    // Transparent shader exterior preserves the other glyph; unchanged cells
+    // belong exclusively to the current texture, never both passes.
+    if(transition){
+      gl.bindTexture(gl.TEXTURE_2D,spareSDF);
+      gl.uniform1fv(loc('uCellFade[0]'),transition.oldFades);
+      gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+    }
+    gl.bindTexture(gl.TEXTURE_2D,sdf);gl.uniform1fv(loc('uCellFade[0]'),fades);
+    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);gl.disable(gl.BLEND);
     window.glassQA.draws++;
   }
   function settle(){if(transition)window.glassQA.lastDrawKey=null;cancelAnimationFrame(frame);frame=0;transition=null;fades.fill(1);window.glassQA.transition=null;}
@@ -39,15 +49,14 @@ export function createDigitGlass(canvas, clock, cells) {
     if(!transition)return;
     const t=transition;
     if(document.hidden||reduced.matches){settle();update(true);return;}
-    let elapsed=now-t.start;
-    if(!t.swapped && elapsed>=FADE_OUT_MS){
-      t.swapped=true;update(true);t.start=performance.now()-FADE_OUT_MS;elapsed=FADE_OUT_MS;
-    }
-    const progress=Math.min(1,elapsed<FADE_OUT_MS?elapsed/FADE_OUT_MS:(elapsed-FADE_OUT_MS)/FADE_IN_MS);
-    const eased=progress*progress*(3-2*progress);
-    t.changed.forEach((changed,j)=>fades[j]=changed?(t.swapped?eased:1-eased):1);
+    const elapsed=now-t.start;
+    const ease=x=>{const p=Math.max(0,Math.min(1,x));return p*p*(3-2*p);};
+    t.changed.forEach((changed,j)=>{
+      t.oldFades[j]=changed?1-ease(elapsed/FADE_OUT_MS):0;
+      fades[j]=changed?ease((elapsed-FADE_IN_DELAY_MS)/FADE_IN_MS):1;
+    });
     draw();
-    if(elapsed>=FADE_OUT_MS+FADE_IN_MS){settle();window.glassQA.transition=null;return;}
+    if(elapsed>=FADE_IN_DELAY_MS+FADE_IN_MS){settle();window.glassQA.transition=null;return;}
     frame=requestAnimationFrame(tick);
   }
   reduced.addEventListener('change',()=>{settle();update(true);});
@@ -64,8 +73,14 @@ export function createDigitGlass(canvas, clock, cells) {
       const canAnimate=!transition && displayed && displayed!==chars && layout===nextLayout && material===mode && mode!=='classic' && clock.dataset.motion==='true' && !document.hidden && !reduced.matches;
       settle();
       if(canAnimate){
-        transition={target:chars,start:performance.now(),swapped:false,changed:[...chars].map((c,j)=>c!==displayed[j])};
-        window.glassQA.transition={from:displayed,to:chars};frame=requestAnimationFrame(tick);return;
+        const from=displayed, changed=[...chars].map((c,j)=>c!==displayed[j]);
+        transition={target:chars,start:0,changed,oldFades:new Float32Array(changed.map(c=>c?1:0))};
+        changed.forEach((c,j)=>fades[j]=c?0:1);
+        // Build/upload the target once before the animation clock starts, while
+        // retaining the outgoing field in the second reusable texture.
+        [sdf,spareSDF]=[spareSDF,sdf];
+        update(true);transition.start=performance.now();
+        window.glassQA.transition={from,to:chars};frame=requestAnimationFrame(tick);return;
       }
     }
     layout=nextLayout;

@@ -1,8 +1,4 @@
-"""Real Chrome regression: 110 ms out, 220 ms in, no post-rebuild pause.
-
-Use a controlled RAF clock; glyph rebuild, WebGL and renderer remain real.
-CLOCK_URL selects local or deployed Pages. No screenshots or video required.
-"""
+"""Real Chrome/WebGL regression for 110ms out, 80ms delay, 220ms in."""
 import asyncio
 import json
 import os
@@ -25,35 +21,48 @@ async def main():
           performance.now=()=>now;
           window.requestAnimationFrame=cb=>{pending.set(++next,cb);return next};
           window.cancelAnimationFrame=id=>pending.delete(id);
-          const proto=WebGL2RenderingContext.prototype;
-          const uniform=proto.uniform1fv, upload=proto.texImage2D;
-          let fades=[];
-          proto.uniform1fv=function(loc, values){
-            if(values.length===5)fades=Array.from(values);
-            return uniform.call(this,loc,values);
-          };
-          // Real geometry upload consumes time: incoming fade must start afterwards.
-          proto.texImage2D=function(...args){now+=37;return upload.apply(this,args)};
+          const canvas=document.querySelector('canvas'), gl=canvas.getContext('webgl2');
+          const uniform=gl.uniform1fv.bind(gl);let passes=[];
+          gl.uniform1fv=(loc,values)=>{if(values.length===5)passes.push(Array.from(values));return uniform(loc,values)};
+          const pixels=()=>{const a=new Uint8Array(canvas.width*canvas.height*4);gl.readPixels(0,0,canvas.width,canvas.height,gl.RGBA,gl.UNSIGNED_BYTE,a);return a};
           const rects=()=>Array.from(document.querySelectorAll('time>span'),e=>e.getBoundingClientRect().toJSON());
-          const before=JSON.stringify(rects());
-          clockQA.render('10:39');
-          await Promise.resolve();
-          // Flush the observer's scheduled renderer update without advancing time.
-          {const callbacks=[...pending.values()];pending.clear();callbacks.forEach(cb=>cb(now));}
-          if(!glassQA.transition)throw Error('Expected animated transition');
-          function step(dt){now+=dt;const callbacks=[...pending.values()];pending.clear();callbacks.forEach(cb=>cb(now));samples.push({fades:[...fades],active:!!glassQA.transition});}
-          step(55);step(55);step(110);step(110);
-          const idle=glassQA.draws;step(1000);
-          return {samples,unchangedLayout:before===JSON.stringify(rects()),idleDraws:glassQA.draws-idle,glError:glassQA.glError()};
+          const bounds=rects(), before=JSON.stringify(bounds), old=pixels();
+          clockQA.render('10:39');await Promise.resolve();
+          const flush=()=>{const callbacks=[...pending.values()];pending.clear();callbacks.forEach(cb=>cb(now))};
+          flush();if(!glassQA.transition)throw Error('Expected animated transition');
+          const builds=glassQA.sdfBuilds, uploads=glassQA.textureUploads, start=now;
+          let overlap;
+          for(const elapsed of [55,80,95,110,190,299,300]){
+            now=start+elapsed;passes=[];flush();
+            samples.push({elapsed,active:!!glassQA.transition,passes});
+            if(elapsed===95)overlap=pixels();
+          }
+          const final=pixels();let oldOnly=0,newOnly=0,unchangedDiff=0;
+          for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){
+            const i=(y*canvas.width+x)*4, cssX=x*390/canvas.width;
+            if(cssX<bounds[3].right){if(old[i]!==overlap[i])unchangedDiff++;}
+            if(cssX<bounds[4].left)continue;
+            if(old[i]>80 && final[i]<2 && overlap[i]>1)oldOnly++;
+            if(final[i]>80 && old[i]<2 && overlap[i]>1)newOnly++;
+          }
+          const idle=glassQA.draws;now+=1000;flush();
+          return {samples,oldOnly,newOnly,unchangedDiff,unchangedLayout:before===JSON.stringify(rects()),idleDraws:glassQA.draws-idle,frameBuilds:glassQA.sdfBuilds-builds,frameUploads:glassQA.textureUploads-uploads,glError:glassQA.glError()};
         }""")
         await browser.close()
         print(json.dumps(dict(results, errors=errors)), flush=True)
-        expected = [(0.5, True), (0, True), (0.5, True), (1, False)]
-        for sample, (opacity, active) in zip(results['samples'], expected):
-            assert abs(sample['fades'][4]-opacity) < 0.00001, (sample, opacity)
-            assert sample['active'] == active, sample
-            assert sample['fades'][:4] == [1, 1, 1, 1], sample
-        assert results['unchangedLayout'] and results['idleDraws'] == 0, results
+        assert results['oldOnly'] > 10 and results['newOnly'] > 10, '95ms must show BOTH glyph silhouettes: '+str(results)
+        for sample in results['samples']:
+            t = sample['elapsed']
+            def ease(x):
+                x = max(0, min(1, x))
+                return x*x*(3-2*x)
+            outgoing, incoming = sample['passes']
+            assert abs(outgoing[4] - (1-ease(t/110))) < 1e-6, sample
+            assert abs(incoming[4] - ease((t-80)/220)) < 1e-6, sample
+            assert outgoing[:4] == [0]*4 and incoming[:4] == [1]*4, sample
+        assert [s['active'] for s in results['samples']] == [True]*6+[False], results
+        assert results['unchangedDiff'] == 0 and results['unchangedLayout'], results
+        assert results['idleDraws'] == results['frameBuilds'] == results['frameUploads'] == 0, results
         assert results['glError'] == 0 and not errors, results
 
 
