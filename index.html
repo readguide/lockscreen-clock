@@ -69,8 +69,10 @@
   </nav>
   <script type="module">
     import {createDigitGlass} from "./digit-glass.js";
-    (() => {
+    import {chromeRoundedFallback} from "./chrome-rounded.js";
+    (async () => {
       const clock = document.getElementById('clock');
+      await chromeRoundedFallback(clock);
       const styleButtons = document.querySelectorAll('[data-mode]');
       function setStyle(mode) {
         const selected = ['classic','glass','frost','prism'].includes(mode) ? mode : 'classic';

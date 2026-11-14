@@ -1,0 +1,98 @@
+{
+  "ui-rounded": {
+    "fonts": [
+      {
+        "familyName": "PingFang SC",
+        "postScriptName": "PingFangSC-Semibold",
+        "isCustomFont": false,
+        "glyphCount": 10
+      }
+    ]
+  },
+  "\"SF Pro Rounded\"": {
+    "fonts": [
+      {
+        "familyName": "PingFang SC",
+        "postScriptName": "PingFangSC-Semibold",
+        "isCustomFont": false,
+        "glyphCount": 10
+      }
+    ]
+  },
+  "\".AppleSystemUIFontRounded\"": {
+    "fonts": [
+      {
+        "familyName": "PingFang SC",
+        "postScriptName": "PingFangSC-Semibold",
+        "isCustomFont": false,
+        "glyphCount": 10
+      }
+    ]
+  },
+  "\"SF Rounded\"": {
+    "fonts": [
+      {
+        "familyName": "PingFang SC",
+        "postScriptName": "PingFangSC-Semibold",
+        "isCustomFont": false,
+        "glyphCount": 10
+      }
+    ]
+  },
+  "\"SFCompactRounded\"": {
+    "fonts": [
+      {
+        "familyName": "PingFang SC",
+        "postScriptName": "PingFangSC-Semibold",
+        "isCustomFont": false,
+        "glyphCount": 10
+      }
+    ]
+  },
+  "\"SF Compact Rounded\"": {
+    "fonts": [
+      {
+        "familyName": "PingFang SC",
+        "postScriptName": "PingFangSC-Semibold",
+        "isCustomFont": false,
+        "glyphCount": 10
+      }
+    ]
+  },
+  "\"Arial Rounded MT Bold\"": {
+    "fonts": [
+      {
+        "familyName": "Arial Rounded MT Bold",
+        "postScriptName": "ArialRoundedMTBold",
+        "isCustomFont": false,
+        "glyphCount": 10
+      }
+    ]
+  },
+  "-apple-system": {
+    "fonts": [
+      {
+        "familyName": "PingFang SC",
+        "postScriptName": "PingFangSC-Semibold",
+        "isCustomFont": false,
+        "glyphCount": 10
+      }
+    ]
+  },
+  "BlinkMacSystemFont": {
+    "fonts": [
+      {
+        "familyName": ".SF NS",
+        "postScriptName": ".SFNS-Regular_wdth_opsz600000_GRAD_wght2580000",
+        "isCustomFont": false,
+        "glyphCount": 10
+      }
+    ]
+  },
+  "local:.SF NS Rounded": "NetworkError: A network error occurred.",
+  "local:.SFNSRounded-Regular": "NetworkError: A network error occurred.",
+  "local:.SFNSRounded": "NetworkError: A network error occurred.",
+  "local:SFNSRounded": "NetworkError: A network error occurred.",
+  "local:SF Pro Rounded": "NetworkError: A network error occurred.",
+  "local:Arial Rounded MT Bold": "loaded"
+}

@@ -1,0 +1,110 @@
+[
+  {
+    "baseline": true,
+    "mode": "classic",
+    "sha256": "69bf0264fe4fd77d533ab705c20607a936f685c2ea8abbe96bb276399f5c9d4e",
+    "state": {
+      "font": "",
+      "computed": "600 303.422px / 303.422px ui-rounded, \"SF Pro Rounded\", -apple-system, \"system-ui\", \"Helvetica Neue\", Arial, sans-serif",
+      "html": "<time id=\"clock\" tabindex=\"0\" title=\"Toggle fullscreen\" aria-label=\"03:36\" data-motion=\"false\" datetime=\"03:36\" style=\"font-size: 303.422px; width: 776.48px; justify-content: center; --ink-height: 221.09840359435736px; --glyph-top: -49.567988830359894px;\"><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -10.7408px;\">0</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -6.32163px;\">3</span></span><span class=\"colon\" aria-hidden=\"true\" style=\"width: 31.8593px;\"><span class=\"glyph\">:</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -6.32163px;\">3</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -9.65511px;\">6</span></span></time>",
+      "loaded": [
+        "Clock Condensed"
+      ]
+    }
+  },
+  {
+    "baseline": true,
+    "mode": "glass",
+    "sha256": "7c94a4178666caf8c39f7b423aca31c5a80fd39b39c108b15e0ee61fbc1ea842",
+    "state": {
+      "font": "",
+      "computed": "600 303.422px / 303.422px ui-rounded, \"SF Pro Rounded\", -apple-system, \"system-ui\", \"Helvetica Neue\", Arial, sans-serif",
+      "html": "<time id=\"clock\" tabindex=\"0\" title=\"Toggle fullscreen\" aria-label=\"03:36\" data-motion=\"false\" datetime=\"03:36\" style=\"font-size: 303.422px; width: 776.48px; justify-content: center; --ink-height: 221.09840359435736px; --glyph-top: -49.567988830359894px;\"><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -10.7408px;\">0</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -6.32163px;\">3</span></span><span class=\"colon\" aria-hidden=\"true\" style=\"width: 31.8593px;\"><span class=\"glyph\">:</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -6.32163px;\">3</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -9.65511px;\">6</span></span></time>",
+      "loaded": [
+        "Clock Condensed"
+      ]
+    }
+  },
+  {
+    "baseline": true,
+    "mode": "frost",
+    "sha256": "e3f29df8ab82aa86ce60fdaede90d873eb64676815c4158c0102514f43820fc1",
+    "state": {
+      "font": "",
+      "computed": "600 303.422px / 303.422px ui-rounded, \"SF Pro Rounded\", -apple-system, \"system-ui\", \"Helvetica Neue\", Arial, sans-serif",
+      "html": "<time id=\"clock\" tabindex=\"0\" title=\"Toggle fullscreen\" aria-label=\"03:36\" data-motion=\"false\" datetime=\"03:36\" style=\"font-size: 303.422px; width: 776.48px; justify-content: center; --ink-height: 221.09840359435736px; --glyph-top: -49.567988830359894px;\"><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -10.7408px;\">0</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -6.32163px;\">3</span></span><span class=\"colon\" aria-hidden=\"true\" style=\"width: 31.8593px;\"><span class=\"glyph\">:</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -6.32163px;\">3</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -9.65511px;\">6</span></span></time>",
+      "loaded": [
+        "Clock Condensed"
+      ]
+    }
+  },
+  {
+    "baseline": true,
+    "mode": "prism",
+    "sha256": "679c7cc52904c7629d57873d503d497af9230072e5a893548ab411e9aad92c1a",
+    "state": {
+      "font": "",
+      "computed": "600 303.422px / 303.422px ui-rounded, \"SF Pro Rounded\", -apple-system, \"system-ui\", \"Helvetica Neue\", Arial, sans-serif",
+      "html": "<time id=\"clock\" tabindex=\"0\" title=\"Toggle fullscreen\" aria-label=\"03:36\" data-motion=\"false\" datetime=\"03:36\" style=\"font-size: 303.422px; width: 776.48px; justify-content: center; --ink-height: 221.09840359435736px; --glyph-top: -49.567988830359894px;\"><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -10.7408px;\">0</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -6.32163px;\">3</span></span><span class=\"colon\" aria-hidden=\"true\" style=\"width: 31.8593px;\"><span class=\"glyph\">:</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -6.32163px;\">3</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -9.65511px;\">6</span></span></time>",
+      "loaded": [
+        "Clock Condensed"
+      ]
+    }
+  },
+  {
+    "baseline": false,
+    "mode": "classic",
+    "sha256": "53a62fb456e958504f2f41189591882963d1dc9ba667d181585a0591c7ed94b8",
+    "state": {
+      "font": "",
+      "computed": "600 303.422px / 303.422px ui-rounded, \"SF Pro Rounded\", -apple-system, \"system-ui\", \"Helvetica Neue\", Arial, sans-serif",
+      "html": "<time id=\"clock\" tabindex=\"0\" title=\"Toggle fullscreen\" aria-label=\"03:36\" data-motion=\"false\" datetime=\"03:36\" style=\"font-size: 303.422px; width: 776.48px; justify-content: center; --ink-height: 221.09840359435736px; --glyph-top: -49.567988830359894px;\"><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -10.7408px;\">0</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -6.32163px;\">3</span></span><span class=\"colon\" aria-hidden=\"true\" style=\"width: 31.8593px;\"><span class=\"glyph\">:</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -6.32163px;\">3</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -9.65511px;\">6</span></span></time>",
+      "loaded": [
+        "Clock Condensed"
+      ]
+    },
+    "changedPixels": 1
+  },
+  {
+    "baseline": false,
+    "mode": "glass",
+    "sha256": "7c94a4178666caf8c39f7b423aca31c5a80fd39b39c108b15e0ee61fbc1ea842",
+    "state": {
+      "font": "",
+      "computed": "600 303.422px / 303.422px ui-rounded, \"SF Pro Rounded\", -apple-system, \"system-ui\", \"Helvetica Neue\", Arial, sans-serif",
+      "html": "<time id=\"clock\" tabindex=\"0\" title=\"Toggle fullscreen\" aria-label=\"03:36\" data-motion=\"false\" datetime=\"03:36\" style=\"font-size: 303.422px; width: 776.48px; justify-content: center; --ink-height: 221.09840359435736px; --glyph-top: -49.567988830359894px;\"><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -10.7408px;\">0</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -6.32163px;\">3</span></span><span class=\"colon\" aria-hidden=\"true\" style=\"width: 31.8593px;\"><span class=\"glyph\">:</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -6.32163px;\">3</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -9.65511px;\">6</span></span></time>",
+      "loaded": [
+        "Clock Condensed"
+      ]
+    },
+    "changedPixels": 0
+  },
+  {
+    "baseline": false,
+    "mode": "frost",
+    "sha256": "e3f29df8ab82aa86ce60fdaede90d873eb64676815c4158c0102514f43820fc1",
+    "state": {
+      "font": "",
+      "computed": "600 303.422px / 303.422px ui-rounded, \"SF Pro Rounded\", -apple-system, \"system-ui\", \"Helvetica Neue\", Arial, sans-serif",
+      "html": "<time id=\"clock\" tabindex=\"0\" title=\"Toggle fullscreen\" aria-label=\"03:36\" data-motion=\"false\" datetime=\"03:36\" style=\"font-size: 303.422px; width: 776.48px; justify-content: center; --ink-height: 221.09840359435736px; --glyph-top: -49.567988830359894px;\"><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -10.7408px;\">0</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -6.32163px;\">3</span></span><span class=\"colon\" aria-hidden=\"true\" style=\"width: 31.8593px;\"><span class=\"glyph\">:</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -6.32163px;\">3</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -9.65511px;\">6</span></span></time>",
+      "loaded": [
+        "Clock Condensed"
+      ]
+    },
+    "changedPixels": 0
+  },
+  {
+    "baseline": false,
+    "mode": "prism",
+    "sha256": "679c7cc52904c7629d57873d503d497af9230072e5a893548ab411e9aad92c1a",
+    "state": {
+      "font": "",
+      "computed": "600 303.422px / 303.422px ui-rounded, \"SF Pro Rounded\", -apple-system, \"system-ui\", \"Helvetica Neue\", Arial, sans-serif",
+      "html": "<time id=\"clock\" tabindex=\"0\" title=\"Toggle fullscreen\" aria-label=\"03:36\" data-motion=\"false\" datetime=\"03:36\" style=\"font-size: 303.422px; width: 776.48px; justify-content: center; --ink-height: 221.09840359435736px; --glyph-top: -49.567988830359894px;\"><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -10.7408px;\">0</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -6.32163px;\">3</span></span><span class=\"colon\" aria-hidden=\"true\" style=\"width: 31.8593px;\"><span class=\"glyph\">:</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -6.32163px;\">3</span></span><span class=\"digit\" aria-hidden=\"true\" style=\"width: 172.501px;\"><span class=\"glyph\" style=\"left: -9.65511px;\">6</span></span></time>",
+      "loaded": [
+        "Clock Condensed"
+      ]
+    },
+    "changedPixels": 0
+  }
+]
